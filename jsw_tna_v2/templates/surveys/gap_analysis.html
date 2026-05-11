@@ -1,0 +1,396 @@
+{% extends 'surveys/base.html' %}
+{% block title %}Gap Analysis — {{ func_data.label }} | JSW Motors{% endblock %}
+
+{% block extra_css %}
+<style>
+.func-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.func-tab{padding:7px 14px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;
+  font-size:.78rem;font-weight:600;color:var(--text-mid);cursor:pointer;text-decoration:none;transition:all .15s;}
+.func-tab:hover{border-color:var(--jsw-blue);color:var(--jsw-navy);}
+.func-tab.active{background:var(--jsw-navy);color:#fff;border-color:var(--jsw-navy);}
+.chart-card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-md);
+  padding:1.5rem;border:1px solid rgba(26,45,90,.06);margin-bottom:1.5rem;}
+.chart-title{font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:700;color:var(--jsw-navy);margin-bottom:4px;}
+.chart-sub{font-size:.76rem;color:var(--text-light);margin-bottom:1rem;}
+.chart-wrap{position:relative;height:320px;}
+.chart-wrap-tall{position:relative;height:420px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+@media(max-width:800px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-card{background:#fff;border-radius:12px;padding:1.1rem;border:1px solid #E2E8F0;box-shadow:var(--shadow-sm);text-align:center;}
+.kpi-num{font-family:'Poppins',sans-serif;font-size:1.7rem;font-weight:800;line-height:1;}
+.kpi-lbl{font-size:.7rem;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:5px;}
+.gap-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.gap-high{background:#FEE2E2;color:#991B1B;}
+.gap-medium{background:#FEF3C7;color:#92400E;}
+.gap-low{background:#D1FAE5;color:#065F46;}
+.no-data-box{background:var(--jsw-light);border-radius:10px;padding:2.5rem;text-align:center;
+  color:var(--text-light);font-size:.88rem;}
+.gap-table th{background:var(--jsw-navy);}
+.gap-bar{height:8px;border-radius:4px;background:#E2E8F0;overflow:hidden;}
+.gap-bar-fill{height:100%;border-radius:4px;background:var(--jsw-red);}
+</style>
+{% endblock %}
+
+{% block nav_extra %}
+<a href="/admin-dashboard/" class="nav-link">← Dashboard</a>
+<a href="/admin-logout/" class="nav-link btn-nav">Sign Out</a>
+{% endblock %}
+
+{% block content %}
+<div class="main-content wide">
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:800;color:var(--jsw-navy);">📊 Competency Gap Analysis</h1>
+      <p style="font-size:.78rem;color:var(--text-light);">FH desired Day-1 level vs Employee self-assessed current proficiency · {{ func_data.label }}</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="/admin-export/functional-head/?function={{ function_key }}" class="btn btn-gold btn-sm">⬇ Export FH</a>
+      <a href="/admin-export/self-assessment/?function={{ function_key }}" class="btn btn-outline btn-sm">⬇ Export SA</a>
+    </div>
+  </div>
+
+  <!-- Function tabs -->
+  <div class="func-tabs">
+    {% for key, func in functions.items %}
+    <a href="/admin-gap-analysis/?function={{ key }}" class="func-tab {% if key == function_key %}active{% endif %}">{{ func.label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if fh_total == 0 and sa_total == 0 %}
+  <div class="no-data-box">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">📭</div>
+    <p><strong>No data yet for {{ func_data.label }}.</strong></p>
+    <p style="margin-top:6px;">Charts will appear once Functional Heads and employees submit their surveys for this function.</p>
+  </div>
+  {% else %}
+
+  <!-- KPI summary -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--jsw-navy);">{{ fh_total }}</div>
+      <div class="kpi-lbl">FH Surveys</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:#16a34a;">{{ sa_total }}</div>
+      <div class="kpi-lbl">Self-Assessments</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--jsw-red);">{{ high_gaps|length }}</div>
+      <div class="kpi-lbl">High-Gap Competencies (≥2)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:#9333ea;">{{ top10_list|length }}</div>
+      <div class="kpi-lbl">Top 10 Prioritised</div>
+    </div>
+  </div>
+
+  <!-- Charts row 1 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+    {% if fh_total > 0 %}
+    <div class="chart-card">
+      <div class="chart-title">Average Importance Rating by Competency</div>
+      <div class="chart-sub">Rated by {{ fh_total }} Functional Head(s) · Scale 1–5</div>
+      <div class="chart-wrap"><canvas id="importanceChart"></canvas></div>
+    </div>
+    {% endif %}
+    {% if fh_total > 0 %}
+    <div class="chart-card">
+      <div class="chart-title">Top 10 Nominated Competencies</div>
+      <div class="chart-sub">% of Functional Heads who marked as Top 10</div>
+      <div class="chart-wrap"><canvas id="top10Chart"></canvas></div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if fh_total > 0 and sa_total > 0 %}
+  <!-- Gap chart — full width -->
+  <div class="chart-card">
+    <div class="chart-title">🎯 Competency Gap: Day-1 Required Level vs Current Proficiency</div>
+    <div class="chart-sub">Gap = FH desired Day-1 level (orange) minus Employee self-assessed level (blue) · Positive gap = training priority</div>
+    <div class="chart-wrap-tall"><canvas id="gapChart"></canvas></div>
+  </div>
+
+  <!-- Gap severity chart -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+    <div class="chart-card">
+      <div class="chart-title">Gap Severity Distribution</div>
+      <div class="chart-sub">High ≥2 · Medium 1–1.99 · Low &lt;1</div>
+      <div class="chart-wrap"><canvas id="severityChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Technical vs Behavioural Proficiency</div>
+      <div class="chart-sub">Average self-assessed proficiency by competency category</div>
+      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+    </div>
+  </div>
+  {% elif sa_total > 0 %}
+  <div class="chart-card">
+    <div class="chart-title">Employee Self-Assessed Proficiency</div>
+    <div class="chart-sub">Average current level rated by {{ sa_total }} employee(s) · Scale 1–5</div>
+    <div class="chart-wrap-tall"><canvas id="saOnlyChart"></canvas></div>
+  </div>
+  {% elif fh_total > 0 %}
+  <div class="alert alert-info">
+    <span>ℹ️</span>
+    <div>No employee self-assessments yet for this function. Gap analysis chart will appear once employees submit self-assessments.</div>
+  </div>
+  {% endif %}
+
+  <!-- Top 10 priorities table -->
+  {% if top10_list and fh_total > 0 %}
+  <div class="chart-card">
+    <div class="chart-title">Top 10 Critical Competencies (FH Priority)</div>
+    <div class="chart-sub">Ranked by number of Functional Heads who selected this as Top 10</div>
+    <div style="overflow-x:auto;">
+      <table class="gap-table">
+        <thead><tr><th>Rank</th><th>Code</th><th>Competency</th><th>Category</th><th>Top 10 Nominations</th><th>% of FHs</th><th>Avg Day-1 Level</th><th>Avg SA Level</th><th>Gap</th><th>Priority</th></tr></thead>
+        <tbody>
+          {% for d in top10_list %}
+          {% if d.top10_count > 0 %}
+          <tr>
+            <td style="font-weight:700;color:var(--jsw-navy);">{{ forloop.counter }}</td>
+            <td style="font-family:monospace;font-size:.73rem;">{{ d.code }}</td>
+            <td><strong style="font-size:.82rem;">{{ d.name }}</strong></td>
+            <td>{% if d.category == 'Technical' %}<span class="tag tag-tech">Tech</span>{% else %}<span class="tag tag-beh">Beh</span>{% endif %}</td>
+            <td style="text-align:center;font-weight:700;color:#1D4ED8;">{{ d.top10_count }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="gap-bar" style="width:80px;"><div class="gap-bar-fill" style="width:{{ d.top10_pct }}%;background:var(--jsw-blue);"></div></div>
+                <span style="font-size:.75rem;font-weight:600;">{{ d.top10_pct }}%</span>
+              </div>
+            </td>
+            <td style="text-align:center;">{% if d.avg_day1 %}{{ d.avg_day1 }}{% else %}<span style="color:#94A3B8;">—</span>{% endif %}</td>
+            <td style="text-align:center;">{% if d.avg_sa %}{{ d.avg_sa }}{% else %}<span style="color:#94A3B8;">—</span>{% endif %}</td>
+            <td style="text-align:center;">
+              {% if d.avg_day1 and d.avg_sa %}
+              <strong style="color:{% if d.gap >= 2 %}#991B1B{% elif d.gap >= 1 %}#92400E{% else %}#065F46{% endif %};">
+                {% if d.gap > 0 %}+{% endif %}{{ d.gap }}
+              </strong>
+              {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
+            </td>
+            <td>
+              {% if d.avg_day1 and d.avg_sa %}
+              <span class="gap-badge gap-{{ d.gap_severity }}">
+                {% if d.gap_severity == 'high' %}🔴 High{% elif d.gap_severity == 'medium' %}🟡 Medium{% else %}🟢 Low{% endif %}
+              </span>
+              {% else %}<span style="color:#94A3B8;font-size:.75rem;">N/A</span>{% endif %}
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Full gap table -->
+  {% if fh_total > 0 or sa_total > 0 %}
+  <div class="chart-card">
+    <div class="chart-title">Full Competency Analysis Table</div>
+    <div class="chart-sub">All {{ chart_data|length }} competencies for {{ func_data.label }} with importance, day-1 level, self-assessed level, and gap</div>
+    <div style="overflow-x:auto;">
+      <table class="gap-table">
+        <thead><tr><th>Code</th><th>Competency</th><th>Cat</th><th>Avg Importance</th><th>Day-1 Required</th><th>SA Level</th><th>Gap</th><th>Severity</th></tr></thead>
+        <tbody>
+          {% for d in chart_data %}
+          <tr>
+            <td style="font-family:monospace;font-size:.73rem;">{{ d.code }}</td>
+            <td style="font-size:.82rem;max-width:240px;">{{ d.name }}<br><small style="color:#16a34a;font-size:.67rem;">{{ d.kpi_link|truncatechars:60 }}</small></td>
+            <td>{% if d.category == 'Technical' %}<span class="tag tag-tech">T</span>{% else %}<span class="tag tag-beh">B</span>{% endif %}</td>
+            <td style="text-align:center;">
+              {% if d.avg_importance %}
+              <span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-weight:700;font-size:.75rem;">{{ d.avg_importance }}</span>
+              {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if d.avg_day1 %}<span style="background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:12px;font-weight:700;font-size:.75rem;">{{ d.avg_day1 }}</span>
+              {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if d.avg_sa %}<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:12px;font-weight:700;font-size:.75rem;">{{ d.avg_sa }}</span>
+              {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if d.avg_day1 and d.avg_sa %}
+              <strong style="color:{% if d.gap >= 2 %}#991B1B{% elif d.gap >= 1 %}#D97706{% else %}#065F46{% endif %};">
+                {% if d.gap > 0 %}+{% endif %}{{ d.gap }}
+              </strong>
+              {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
+            </td>
+            <td>
+              {% if d.avg_day1 and d.avg_sa %}
+              <span class="gap-badge gap-{{ d.gap_severity }}">
+                {% if d.gap_severity == 'high' %}🔴 High{% elif d.gap_severity == 'medium' %}🟡 Med{% else %}🟢 Low{% endif %}
+              </span>
+              {% else %}<span style="color:#94A3B8;font-size:.73rem;">No data</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}{# end if fh_total/sa_total > 0 #}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const RAW = {{ chart_data_json|safe }};
+
+const NAVY   = '#1A2D5A';
+const BLUE   = '#2E4B8F';
+const GOLD   = '#D4AF37';
+const RED    = '#C41E3A';
+const GREEN  = '#16a34a';
+const ORANGE = '#EA8C00';
+const PURPLE = '#9333ea';
+const LIGHT  = 'rgba(26,45,90,0.08)';
+
+const labels  = RAW.map(d => d.code);
+const names   = RAW.map(d => d.name.length > 28 ? d.name.slice(0,26)+'…' : d.name);
+const avgImp  = RAW.map(d => d.avg_importance);
+const avgDay1 = RAW.map(d => d.avg_day1);
+const avgSA   = RAW.map(d => d.avg_sa);
+const gaps    = RAW.map(d => (d.avg_day1 && d.avg_sa) ? d.gap : null);
+const top10Pct= RAW.map(d => d.top10_pct);
+const top10C  = RAW.map(d => d.top10_count);
+
+const baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } } },
+  scales: {
+    x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { color: LIGHT } },
+    y: { min: 0, max: 5, ticks: { font: { size: 10 } }, grid: { color: LIGHT } }
+  }
+};
+
+// ── Chart 1: Importance ──────────────────────────────────────────────────────
+if (document.getElementById('importanceChart')) {
+  new Chart(document.getElementById('importanceChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Avg Importance (1–5)',
+        data: avgImp,
+        backgroundColor: avgImp.map(v => v >= 4 ? 'rgba(196,30,58,0.75)' : v >= 3 ? 'rgba(26,45,90,0.7)' : 'rgba(46,75,143,0.5)'),
+        borderRadius: 4,
+      }]
+    },
+    options: { ...baseOpts,
+      plugins: { ...baseOpts.plugins, tooltip: { callbacks: { title: (i) => names[i[0].dataIndex] } } }
+    }
+  });
+}
+
+// ── Chart 2: Top 10 % ────────────────────────────────────────────────────────
+if (document.getElementById('top10Chart')) {
+  const sorted = [...RAW].sort((a,b)=>b.top10_count-a.top10_count).slice(0,10);
+  new Chart(document.getElementById('top10Chart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(d => d.code),
+      datasets: [{
+        label: '% FHs — Top 10 Selection',
+        data: sorted.map(d => d.top10_pct),
+        backgroundColor: 'rgba(212,175,55,0.8)',
+        borderRadius: 4,
+      }]
+    },
+    options: { ...baseOpts,
+      scales: { ...baseOpts.scales, y: { min: 0, max: 100, ticks: { callback: v => v+'%' } } },
+      plugins: { ...baseOpts.plugins, tooltip: { callbacks: {
+        title: (i) => sorted[i[0].dataIndex].name,
+        label: (i) => `${i.raw}% (${sorted[i.dataIndex].top10_count} nominations)`
+      }}}
+    }
+  });
+}
+
+// ── Chart 3: Gap chart ───────────────────────────────────────────────────────
+if (document.getElementById('gapChart')) {
+  new Chart(document.getElementById('gapChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Day-1 Required (FH)', data: avgDay1, backgroundColor: 'rgba(234,140,0,0.75)', borderRadius: 3, },
+        { label: 'Current Proficiency (SA)', data: avgSA, backgroundColor: 'rgba(46,75,143,0.7)', borderRadius: 3, },
+      ]
+    },
+    options: { ...baseOpts,
+      plugins: { ...baseOpts.plugins,
+        tooltip: { callbacks: { title: (i) => names[i[0].dataIndex] } }
+      }
+    }
+  });
+}
+
+// ── Chart 4: Severity doughnut ───────────────────────────────────────────────
+if (document.getElementById('severityChart')) {
+  const withBothData = RAW.filter(d => d.avg_day1 && d.avg_sa);
+  const high   = withBothData.filter(d => d.gap_severity === 'high').length;
+  const medium = withBothData.filter(d => d.gap_severity === 'medium').length;
+  const low    = withBothData.filter(d => d.gap_severity === 'low').length;
+  new Chart(document.getElementById('severityChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['High Gap (≥2)', 'Medium Gap (1–2)', 'Low Gap (<1)'],
+      datasets: [{ data: [high, medium, low],
+        backgroundColor: ['rgba(196,30,58,0.8)', 'rgba(234,140,0,0.8)', 'rgba(22,163,74,0.8)'],
+        borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+    }
+  });
+}
+
+// ── Chart 5: Tech vs Beh ──────────────────────────────────────────────────────
+if (document.getElementById('catChart')) {
+  const tech = RAW.filter(d => d.category === 'Technical' && d.avg_sa);
+  const beh  = RAW.filter(d => d.category !== 'Technical' && d.avg_sa);
+  const avg = arr => arr.length ? (arr.reduce((s,d)=>s+d.avg_sa,0)/arr.length).toFixed(2) : 0;
+  const avgDay1Cat = arr => arr.length ? (arr.filter(d=>d.avg_day1).reduce((s,d)=>s+(d.avg_day1||0),0)/Math.max(arr.filter(d=>d.avg_day1).length,1)).toFixed(2) : 0;
+  new Chart(document.getElementById('catChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Technical\nSA Level', 'Technical\nDay-1 Req', 'Behavioural\nSA Level', 'Behavioural\nDay-1 Req'],
+      datasets: [{
+        label: 'Actual', data: [avg(tech), 0, avg(beh), 0],
+        backgroundColor: 'rgba(46,75,143,0.15)', borderColor: BLUE, borderWidth: 2, pointBackgroundColor: BLUE,
+      }, {
+        label: 'Required', data: [0, avgDay1Cat(tech), 0, avgDay1Cat(beh)],
+        backgroundColor: 'rgba(234,140,0,0.12)', borderColor: ORANGE, borderWidth: 2, pointBackgroundColor: ORANGE,
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 9 } } } },
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } }
+    }
+  });
+}
+
+// ── Chart 6: SA only (when no FH data) ───────────────────────────────────────
+if (document.getElementById('saOnlyChart')) {
+  new Chart(document.getElementById('saOnlyChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Avg Self-Assessed Level (1–5)', data: avgSA,
+        backgroundColor: 'rgba(46,75,143,0.7)', borderRadius: 4 }]
+    },
+    options: { ...baseOpts,
+      plugins: { ...baseOpts.plugins, tooltip: { callbacks: { title: (i) => names[i[0].dataIndex] } } }
+    }
+  });
+}
+</script>
+{% endblock %}

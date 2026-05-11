@@ -1,0 +1,220 @@
+{% extends 'surveys/base.html' %}
+{% load static %}
+{% block title %}JSW Motors — Competency & TNA Survey Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero{position:relative;background:linear-gradient(135deg,#0F2444 0%,#1A2D5A 55%,#2E4B8F 100%);
+  min-height:340px;display:flex;align-items:center;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background-image:url("{% static 'images/jsw_hq2.jpg' %}");
+  background-size:cover;background-position:center;opacity:.16;}
+.hero-content{position:relative;z-index:2;max-width:960px;margin:0 auto;padding:3rem 2rem;width:100%;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.18);
+  border:1px solid rgba(212,175,55,.5);color:#F0C93A;padding:5px 14px;border-radius:20px;
+  font-size:.75rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:1.2rem;}
+.hero h1{font-family:'Poppins',sans-serif;font-size:2.1rem;font-weight:800;color:#fff;line-height:1.2;margin-bottom:.75rem;}
+.hero h1 span{color:#F0C93A;}
+.hero p{color:rgba(255,255,255,.78);font-size:.95rem;max-width:540px;line-height:1.7;}
+.hero-stats{display:flex;gap:2.5rem;margin-top:2rem;flex-wrap:wrap;}
+.hero-stat .num{font-family:'Poppins',sans-serif;font-size:1.8rem;font-weight:800;color:#F0C93A;display:block;}
+.hero-stat .lbl{font-size:.7rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;}
+.suv-img{position:absolute;right:0;bottom:0;height:280px;opacity:.18;}
+
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+@media(max-width:720px){.steps-grid{grid-template-columns:1fr;}}
+.step-card{background:#fff;border-radius:var(--radius);padding:1.25rem;border:1px solid #E2E8F0;
+  box-shadow:var(--shadow-sm);display:flex;align-items:flex-start;gap:14px;}
+.step-num{width:34px;height:34px;border-radius:50%;flex-shrink:0;background:var(--jsw-navy);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88rem;}
+.step-title{font-weight:700;font-size:.88rem;color:var(--jsw-navy);margin-bottom:4px;}
+.step-desc{font-size:.76rem;color:var(--text-mid);line-height:1.55;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+@media(max-width:680px){.info-grid{grid-template-columns:1fr;}}
+.info-card{background:linear-gradient(135deg,#1A2D5A 0%,#2E4B8F 100%);border-radius:var(--radius);
+  padding:1.25rem 1.5rem;color:#fff;}
+.info-card h4{font-size:.88rem;font-weight:700;margin-bottom:.5rem;color:#F0C93A;}
+.info-card ul{list-style:none;}
+.info-card li{font-size:.78rem;color:rgba(255,255,255,.82);padding:3px 0;display:flex;gap:8px;}
+.info-card li::before{content:"›";color:#F0C93A;font-weight:700;}
+
+.survey-form-card{background:#fff;border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(26,45,90,.14);
+  border:1px solid rgba(26,45,90,.08);overflow:hidden;}
+.form-header{background:linear-gradient(135deg,var(--jsw-navy) 0%,var(--jsw-blue) 100%);padding:1.5rem 2rem;}
+.form-header h2{font-family:'Poppins',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.form-header p{font-size:.78rem;color:rgba(255,255,255,.72);}
+.form-body{padding:2rem;}
+
+.role-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:580px){.role-cards{grid-template-columns:1fr;}}
+.role-radio{display:none;}
+.role-label{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;
+  border-radius:10px;cursor:pointer;border:2px solid #e2e8f0;background:#F8FAFC;
+  transition:all .2s;text-align:center;}
+.role-label .role-icon{font-size:1.5rem;}
+.role-label .role-name{font-weight:700;font-size:.8rem;color:var(--jsw-navy);}
+.role-label .role-desc{font-size:.67rem;color:var(--text-light);}
+.role-radio:checked+.role-label{border-color:var(--jsw-blue);background:var(--jsw-light);
+  box-shadow:0 0 0 3px rgba(46,75,143,.15);}
+
+.func-wrap{position:relative;}
+.func-wrap select{padding-right:36px;appearance:none;}
+.func-wrap::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  color:var(--jsw-blue);pointer-events:none;}
+
+.submit-btn{width:100%;padding:14px;font-size:.95rem;font-weight:700;
+  background:linear-gradient(135deg,var(--jsw-navy) 0%,var(--jsw-blue) 100%);
+  color:#fff;border:none;border-radius:10px;cursor:pointer;transition:all .2s;
+  font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,45,90,.3);}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-bg"></div>
+  <img src="{% static 'images/jsw_suv.png' %}" alt="" class="suv-img">
+  <div class="hero-content">
+    <div class="hero-badge">🚗 JSW Motors &nbsp;·&nbsp; GET &amp; MT Programme 2026</div>
+    <h1>Competency &amp; <span>TNA Survey</span> Portal</h1>
+    <p>A structured platform to map competencies, identify training needs, and build a high-performance talent pipeline for JSW Motors' greenfield EV manufacturing programme.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">9</span><span class="lbl">Functions</span></div>
+      <div class="hero-stat"><span class="num">118</span><span class="lbl">Competencies</span></div>
+      <div class="hero-stat"><span class="num">2</span><span class="lbl">Survey Types</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="main-content wide">
+
+  <h2 style="font-family:'Poppins',sans-serif;font-size:1.1rem;font-weight:700;color:var(--jsw-navy);margin:1.5rem 0 1rem;">How This Portal Works</h2>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">1</div>
+      <div><div class="step-title">Enter Your Details</div>
+      <div class="step-desc">Provide your name, employee code and select your role (GET, MT, or Functional Head).</div></div></div>
+    <div class="step-card"><div class="step-num">2</div>
+      <div><div class="step-title">Select Your Function</div>
+      <div class="step-desc">Choose your function. You will see competencies specific to your area, derived directly from the JSW Motors Functional KPI Scorecard.</div></div></div>
+    <div class="step-card"><div class="step-num">3</div>
+      <div><div class="step-title">Complete the Survey</div>
+      <div class="step-desc">Functional Heads: prioritise competencies &amp; set Day-1 levels. GETs/MTs: self-assess your current proficiency honestly.</div></div></div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card"><h4>📝 Functional Head Survey</h4>
+      <ul>
+        <li>Rate each competency by importance (1–5 scale)</li>
+        <li>Select your Top 10 critical competencies</li>
+        <li>Set minimum Day-1 readiness level per competency</li>
+        <li>Answer 3 open-ended strategy questions</li>
+      </ul></div>
+    <div class="info-card"><h4>👤 Employee Self-Assessment (GET / MT)</h4>
+      <ul>
+        <li>Rate your current proficiency level (1–5 scale)</li>
+        <li>Add evidence notes for key competencies</li>
+        <li>Reflect on strengths and development areas</li>
+        <li>Feeds directly into your Individual Development Plan</li>
+      </ul></div>
+  </div>
+
+  <!-- Proficiency scale -->
+  <div style="background:#fff;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;border:1px solid #e2e8f0;box-shadow:var(--shadow-sm);">
+    <div style="font-weight:700;font-size:.83rem;color:var(--jsw-navy);margin-bottom:10px;">📊 5-Level Proficiency Scale Reference</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+      {% for num,name,desc in level_data %}
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:{{level_colors|default:'#F1F5F9'}}">
+        <div style="font-size:1.1rem;font-weight:800;color:{{ num|divisibleby:2|yesno:'#1D4ED8,#065F46' }}">{{ num }}</div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--text-dark);">{{ name }}</div>
+        <div style="font-size:.63rem;color:var(--text-light);margin-top:2px;">{{ desc }}</div>
+      </div>
+      {% empty %}
+      {% with levels="1,Awareness,Knows concept;2,Basic,Applies with guidance;3,Practitioner,Applies independently;4,Advanced,Coaches others;5,Expert,Sets standards" %}
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:#F1F5F9;"><div style="font-size:1.1rem;font-weight:800;color:#64748B;">1</div><div style="font-size:.7rem;font-weight:700;color:#64748B;">Awareness</div><div style="font-size:.63rem;color:#94A3B8;margin-top:2px;">Knows concept</div></div>
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:#DBEAFE;"><div style="font-size:1.1rem;font-weight:800;color:#1D4ED8;">2</div><div style="font-size:.7rem;font-weight:700;color:#1D4ED8;">Basic</div><div style="font-size:.63rem;color:#3B82F6;margin-top:2px;">Applies with guidance</div></div>
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:#D1FAE5;"><div style="font-size:1.1rem;font-weight:800;color:#065F46;">3</div><div style="font-size:.7rem;font-weight:700;color:#065F46;">Practitioner</div><div style="font-size:.63rem;color:#059669;margin-top:2px;">Applies independently</div></div>
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:#FEF3C7;"><div style="font-size:1.1rem;font-weight:800;color:#92400E;">4</div><div style="font-size:.7rem;font-weight:700;color:#92400E;">Advanced</div><div style="font-size:.63rem;color:#B45309;margin-top:2px;">Coaches others</div></div>
+      <div style="text-align:center;border-radius:8px;padding:10px 6px;background:#FEE2E2;"><div style="font-size:1.1rem;font-weight:800;color:#991B1B;">5</div><div style="font-size:.7rem;font-weight:700;color:#991B1B;">Expert</div><div style="font-size:.63rem;color:#DC2626;margin-top:2px;">Sets standards</div></div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="survey-form-card">
+    <div class="form-header">
+      <h2>🚀 Start Your Survey</h2>
+      <p>Fill in your details below — the correct survey form will open automatically based on your role.</p>
+    </div>
+    <div class="form-body">
+      {% if error %}<div class="alert alert-danger">⚠️ {{ error }}</div>{% endif %}
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-row" style="margin-bottom:1.2rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Employee Name <span class="req">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="Your full name" value="{{ name|default:'' }}" required>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Employee Code <span class="req">*</span></label>
+            <input type="text" name="emp_code" class="form-control" placeholder="e.g. JSW-2026-GET-001" value="{{ emp_code|default:'' }}" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Role <span class="req">*</span></label>
+          <div class="role-cards">
+            <div>
+              <input type="radio" name="role" id="role-get" value="GET" class="role-radio" {% if role == 'GET' %}checked{% endif %} required>
+              <label for="role-get" class="role-label">
+                <span class="role-icon">🎓</span>
+                <span class="role-name">GET</span>
+                <span class="role-desc">Graduate Engineer Trainee</span>
+              </label>
+            </div>
+            <div>
+              <input type="radio" name="role" id="role-mt" value="MT" class="role-radio" {% if role == 'MT' %}checked{% endif %}>
+              <label for="role-mt" class="role-label">
+                <span class="role-icon">💼</span>
+                <span class="role-name">MT</span>
+                <span class="role-desc">Management Trainee</span>
+              </label>
+            </div>
+            <div>
+              <input type="radio" name="role" id="role-fh" value="FH" class="role-radio" {% if role == 'FH' %}checked{% endif %}>
+              <label for="role-fh" class="role-label">
+                <span class="role-icon">👔</span>
+                <span class="role-name">Functional Head</span>
+                <span class="role-desc">Department Lead / Supervisor</span>
+              </label>
+            </div>
+          </div>
+          <small style="color:#64748B;font-size:.73rem;margin-top:6px;display:block;">
+            GETs &amp; MTs → Self-Assessment &nbsp;|&nbsp; Functional Heads → Competency Prioritisation Survey
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Function / Department <span class="req">*</span></label>
+          <div class="func-wrap">
+            <select name="function" class="form-control" required>
+              <option value="">— Select your function —</option>
+              {% for key, func in functions.items %}
+              <option value="{{ key }}" {% if function_key == key %}selected{% endif %}>{{ func.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Begin Survey &nbsp;→</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="alert alert-warning" style="margin-top:1.5rem;">
+    <span>🔒</span>
+    <div><strong>Confidentiality Notice:</strong> This survey is strictly for internal JSW Motors use. Your responses are used exclusively for Competency Mapping, TNA, and Individual Development Planning. Self-assessment data is <strong>not linked to performance appraisals or ratings</strong>. All data is handled per JSW Group data privacy guidelines — © 2026.</div>
+  </div>
+
+</div>
+{% endblock %}

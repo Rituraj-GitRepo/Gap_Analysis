@@ -1,0 +1,36 @@
+{% extends 'surveys/base.html' %}
+{% load static %}
+{% block title %}Admin Login — JSW Motors{% endblock %}
+{% block content %}
+<div class="main-content" style="max-width:440px;padding-top:4rem;">
+  <div style="text-align:center;margin-bottom:2rem;">
+    <img src="{% static 'images/jsw_logo.jpg' %}" style="height:46px;margin-bottom:1rem;border-radius:6px;">
+    <h1 style="font-family:'Poppins',sans-serif;font-size:1.35rem;font-weight:800;color:var(--jsw-navy);">Admin Portal</h1>
+    <p style="font-size:.8rem;color:var(--text-light);">JSW Motors — Competency &amp; TNA Survey</p>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🔐</div>
+      <div><div class="card-title">Sign In</div><div class="card-subtitle">Authorised personnel only</div></div>
+    </div>
+    {% if error %}<div class="alert alert-danger">⚠️ {{ error }}</div>{% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Username <span class="req">*</span></label>
+        <input type="text" name="username" class="form-control" placeholder="Admin username" autocomplete="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password <span class="req">*</span></label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;justify-content:center;font-size:.92rem;">
+        🔐 Sign In to Dashboard
+      </button>
+    </form>
+  </div>
+  <p style="text-align:center;font-size:.75rem;color:var(--text-light);margin-top:1rem;">
+    <a href="/" style="color:var(--jsw-blue);text-decoration:none;">← Back to Survey Portal</a>
+  </p>
+</div>
+{% endblock %}

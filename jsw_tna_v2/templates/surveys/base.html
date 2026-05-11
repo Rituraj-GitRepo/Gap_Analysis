@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}JSW Motors — Competency & TNA Survey{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --jsw-navy:#1A2D5A; --jsw-blue:#2E4B8F; --jsw-red:#C41E3A; --jsw-gold:#D4AF37;
+  --jsw-light:#E8F0FE; --jsw-gray:#F0F4FA;
+  --text-dark:#1a1a2e; --text-mid:#4a5568; --text-light:#718096;
+  --white:#fff; --success:#16a34a;
+  --shadow-sm:0 2px 8px rgba(26,45,90,.08);
+  --shadow-md:0 4px 20px rgba(26,45,90,.12);
+  --shadow-lg:0 10px 40px rgba(26,45,90,.18);
+  --radius:12px; --radius-lg:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--jsw-gray);color:var(--text-dark);min-height:100vh;}
+
+/* ── navbar ── */
+.navbar{background:linear-gradient(135deg,var(--jsw-navy) 0%,var(--jsw-blue) 100%);
+  padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 16px rgba(0,0,0,.25);position:sticky;top:0;z-index:1000;}
+.navbar-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.navbar-logo{height:36px;width:auto;object-fit:contain;border-radius:4px;}
+.navbar-title{color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;letter-spacing:.5px;line-height:1.2;}
+.navbar-title span{display:block;font-size:.68rem;font-weight:400;opacity:.75;letter-spacing:1px;text-transform:uppercase;}
+.navbar-links{display:flex;align-items:center;gap:6px;}
+.nav-link{color:rgba(255,255,255,.85);text-decoration:none;font-size:.82rem;font-weight:500;
+  padding:6px 12px;border-radius:6px;transition:all .2s;}
+.nav-link:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-link.btn-nav{background:var(--jsw-red);color:#fff;}
+.nav-link.btn-nav:hover{background:#a01830;}
+
+/* ── layout ── */
+.main-content{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.main-content.wide{max-width:1200px;}
+
+/* ── card ── */
+.card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-md);
+  padding:2rem;margin-bottom:1.5rem;border:1px solid rgba(26,45,90,.06);}
+.card-header{display:flex;align-items:center;gap:16px;padding-bottom:1.25rem;
+  border-bottom:2px solid var(--jsw-light);margin-bottom:1.5rem;}
+.card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;
+  justify-content:center;font-size:1.6rem;background:var(--jsw-light);flex-shrink:0;}
+.card-title{font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:700;color:var(--jsw-navy);}
+.card-subtitle{font-size:.8rem;color:var(--text-light);margin-top:2px;}
+
+/* ── form ── */
+.form-group{margin-bottom:1.2rem;}
+.form-label{display:block;font-weight:600;font-size:.85rem;color:var(--text-dark);margin-bottom:6px;}
+.form-label .req{color:var(--jsw-red);margin-left:2px;}
+.form-control{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:.88rem;color:var(--text-dark);
+  transition:border-color .2s,box-shadow .2s;background:#fff;outline:none;}
+.form-control:focus{border-color:var(--jsw-blue);box-shadow:0 0 0 3px rgba(46,75,143,.12);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+@media(max-width:680px){.form-row,.form-row-3{grid-template-columns:1fr;}
+  .navbar{padding:0 1rem;}.main-content{padding:1rem;}}
+
+/* ── buttons ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;
+  font-size:.88rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;
+  font-family:'Inter',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--jsw-navy);color:#fff;}
+.btn-primary:hover{background:var(--jsw-blue);transform:translateY(-1px);box-shadow:var(--shadow-md);}
+.btn-danger{background:var(--jsw-red);color:#fff;}
+.btn-danger:hover{background:#a01830;}
+.btn-outline{background:#fff;color:var(--jsw-navy);border:2px solid var(--jsw-navy);}
+.btn-outline:hover{background:var(--jsw-light);}
+.btn-sm{padding:6px 12px;font-size:.78rem;}
+.btn-gold{background:var(--jsw-gold);color:var(--jsw-navy);}
+.btn-gold:hover{background:#c9a227;}
+.btn-success{background:#16a34a;color:#fff;}
+.btn-success:hover{background:#15803d;}
+
+/* ── alerts ── */
+.alert{padding:12px 16px;border-radius:8px;font-size:.85rem;margin-bottom:1rem;
+  display:flex;align-items:flex-start;gap:10px;}
+.alert-danger{background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;}
+.alert-success{background:#DCFCE7;border:1px solid #86EFAC;color:#166534;}
+.alert-info{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;}
+.alert-warning{background:#FEF3C7;border:1px solid #FDE68A;color:#92400E;}
+
+/* ── tags ── */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:600;}
+.tag-tech{background:#DBEAFE;color:#1D4ED8;}
+.tag-beh{background:#FCE7F3;color:#9D174D;}
+
+/* ── table ── */
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th{background:var(--jsw-navy);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:.78rem;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid #F1F5F9;vertical-align:middle;}
+tr:hover td{background:#F8FAFC;}
+
+/* ── footer ── */
+.footer{text-align:center;padding:1.5rem;color:var(--text-light);font-size:.78rem;
+  border-top:1px solid #e2e8f0;background:#fff;margin-top:2rem;}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <img src="{% static 'images/jsw_logo.jpg' %}" alt="JSW" class="navbar-logo">
+    <div class="navbar-title">JSW Motors
+      <span>Competency &amp; TNA Survey Portal</span>
+    </div>
+  </a>
+  <div class="navbar-links">
+    <a href="/" class="nav-link">🏠 Home</a>
+    {% block nav_extra %}{% endblock %}
+    <a href="/admin-login/" class="nav-link btn-nav">🔐 Admin</a>
+  </div>
+</nav>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <p>© 2026 JSW Motors — Competency &amp; TNA Survey Portal &nbsp;|&nbsp; Confidential — For Internal Use Only</p>
+</footer>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

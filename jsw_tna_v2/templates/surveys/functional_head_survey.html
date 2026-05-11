@@ -1,0 +1,260 @@
+{% extends 'surveys/base.html' %}
+{% load static %}
+{% block title %}FH Survey — {{ func_data.label }} | JSW Motors{% endblock %}
+
+{% block extra_css %}
+<style>
+.sticky-bar{position:sticky;top:64px;z-index:100;background:var(--jsw-navy);color:#fff;
+  padding:8px 1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
+.sticky-bar strong{color:#F0C93A;}
+.comp-row{display:grid;grid-template-columns:2fr 110px 110px 120px;gap:10px;align-items:start;
+  padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;
+  margin-bottom:8px;transition:all .15s;}
+.comp-row:hover{border-color:#93C5FD;background:#F0F9FF;}
+.comp-row.selected{border-color:var(--jsw-navy);background:#EFF6FF;box-shadow:0 0 0 2px rgba(26,45,90,.12);}
+.comp-hdr{display:grid;grid-template-columns:2fr 110px 110px 120px;gap:10px;
+  padding:6px 14px;font-size:.7rem;font-weight:700;color:#64748B;text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:4px;}
+.col-c{text-align:center;}
+.comp-name{font-weight:600;font-size:.85rem;color:#1E293B;}
+.comp-code{font-size:.7rem;color:#64748B;font-family:monospace;margin-top:2px;}
+.comp-kpi{font-size:.68rem;color:#16a34a;margin-top:3px;}
+.comp-desc{font-size:.7rem;color:#94A3B8;margin-top:4px;line-height:1.45;}
+.sel-ctrl{width:100%;padding:6px 8px;border:1.5px solid #E2E8F0;border-radius:6px;
+  font-size:.78rem;font-family:'Inter',sans-serif;color:#1E293B;background:#fff;}
+.sel-ctrl:focus{border-color:var(--jsw-blue);outline:none;}
+.top10-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px;}
+.top10-cb{width:18px;height:18px;cursor:pointer;accent-color:var(--jsw-navy);}
+.top10-lbl{font-size:.63rem;color:#64748B;text-align:center;}
+.cat-divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0 .6rem;
+  font-size:.75rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;}
+.cat-line{flex:1;height:1px;background:#E2E8F0;}
+.counter-pill{display:inline-flex;align-items:center;gap:8px;background:var(--jsw-light);
+  border:1.5px solid var(--jsw-blue);color:var(--jsw-navy);
+  padding:6px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:12px;}
+@media(max-width:700px){.comp-row,.comp-hdr{grid-template-columns:1fr;}.comp-hdr{display:none;}}
+</style>
+{% endblock %}
+
+{% block nav_extra %}<a href="/" class="nav-link">← Back</a>{% endblock %}
+
+{% block content %}
+<div class="sticky-bar">
+  <span>📝 Functional Head Survey &nbsp;·&nbsp; <strong>{{ func_data.label }}</strong></span>
+  <span>Top 10 selected: <strong id="tc">0</strong> / 10</span>
+</div>
+
+<div class="main-content">
+
+  <!-- hero card -->
+  <div class="card" style="background:linear-gradient(135deg,#1A2D5A,#2E4B8F);color:#fff;border:none;margin-top:0;">
+    <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+      <img src="{% static 'images/jsw_logo.jpg' %}" style="height:44px;border-radius:8px;">
+      <div>
+        <div style="font-size:.7rem;opacity:.7;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Functional Head Competency Prioritisation Survey</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:700;">{{ func_data.label }}</div>
+        <div style="font-size:.78rem;opacity:.8;margin-top:3px;">{{ func_data.head_title }}</div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+          {% for area in func_data.kpi_areas %}
+          <span style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+            padding:3px 10px;border-radius:20px;font-size:.66rem;color:rgba(255,255,255,.85);">{{ area }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if error %}<div class="alert alert-danger">⚠️ {{ error }}</div>{% endif %}
+
+  <div class="alert alert-info">
+    <span>ℹ️</span>
+    <div><strong>Instructions:</strong> (1) Rate Importance (1–5). (2) Check Top 10 critical competencies — max 10. (3) Set Day-1 readiness level. (4) Answer open-ended questions. (5) Submit.</div>
+  </div>
+
+  <form method="POST" id="fh-form">
+  {% csrf_token %}
+
+  <!-- Section A -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">👤</div>
+      <div><div class="card-title">Section A — Respondent Information</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name <span class="req">*</span></label>
+        <input type="text" name="employee_name" class="form-control" value="{{ prefill.name }}" placeholder="Your name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Employee Code <span class="req">*</span></label>
+        <input type="text" name="employee_code" class="form-control" value="{{ prefill.emp_code }}" placeholder="e.g. JSW-FH-001" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <input type="text" class="form-control" value="Functional Head" readonly style="background:#F8FAFC;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date <span class="req">*</span></label>
+        <input type="date" name="date" id="date-field" class="form-control" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section B -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">📊</div>
+      <div>
+        <div class="card-title">Section B — Competency Prioritisation</div>
+        <div class="card-subtitle">Rate importance · select Top 10 · set Day-1 level for each competency</div>
+      </div>
+    </div>
+
+    <div class="counter-pill">☑ Top 10 Selected: <span id="top10-count">0</span> / 10 <span id="top10-ok" style="color:#16a34a;display:none;">✓ Complete</span></div>
+
+    <!-- Importance scale legend -->
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
+      <span style="font-size:.72rem;font-weight:700;color:#64748B;align-self:center;margin-right:4px;">Importance:</span>
+      {% for val, label in importance_levels %}
+      <span style="font-size:.68rem;padding:2px 8px;border-radius:12px;
+        {% if val == 1 %}background:#F1F5F9;color:#64748B;
+        {% elif val == 2 %}background:#DBEAFE;color:#1D4ED8;
+        {% elif val == 3 %}background:#D1FAE5;color:#065F46;
+        {% elif val == 4 %}background:#FEF3C7;color:#92400E;
+        {% else %}background:#FEE2E2;color:#991B1B;{% endif %}">{{ val }} = {{ label }}</span>
+      {% endfor %}
+    </div>
+
+    <div class="comp-hdr">
+      <div>Competency</div>
+      <div class="col-c">Importance<br><small style="font-weight:400;">(1–5)</small></div>
+      <div class="col-c">Top 10</div>
+      <div class="col-c">Day-1 Level<br><small style="font-weight:400;">(1–5)</small></div>
+    </div>
+
+    {% if tech_comps %}
+    <div class="cat-divider"><div class="cat-line"></div><span>🔧 Technical Competencies</span><div class="cat-line"></div></div>
+    {% for comp in tech_comps %}
+    <div class="comp-row" id="row-{{ comp.code }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="comp-name">{{ comp.name }}</span>
+          <span class="tag tag-tech">Technical</span>
+        </div>
+        <div class="comp-code">{{ comp.code }}</div>
+        <div class="comp-kpi">📌 {{ comp.kpi_link }}</div>
+        <div class="comp-desc">{{ comp.desc }}</div>
+      </div>
+      <div class="col-c">
+        <select name="importance_{{ comp.code }}" class="sel-ctrl" required>
+          <option value="">—</option>
+          {% for val, label in importance_levels %}<option value="{{ val }}">{{ val }} — {{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-c top10-wrap">
+        <input type="checkbox" name="top10_{{ comp.code }}" id="cb_{{ comp.code }}" class="top10-cb" data-code="{{ comp.code }}">
+        <label for="cb_{{ comp.code }}" class="top10-lbl">Mark Top 10</label>
+      </div>
+      <div class="col-c">
+        <select name="day1_{{ comp.code }}" class="sel-ctrl">
+          <option value="">— Level —</option>
+          {% for level, name, desc in proficiency_levels %}<option value="{{ level }}">{{ level }} — {{ name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if beh_comps %}
+    <div class="cat-divider"><div class="cat-line"></div><span>🤝 Behavioural Competencies</span><div class="cat-line"></div></div>
+    {% for comp in beh_comps %}
+    <div class="comp-row" id="row-{{ comp.code }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="comp-name">{{ comp.name }}</span>
+          <span class="tag tag-beh">Behavioural</span>
+        </div>
+        <div class="comp-code">{{ comp.code }}</div>
+        <div class="comp-kpi">📌 {{ comp.kpi_link }}</div>
+        <div class="comp-desc">{{ comp.desc }}</div>
+      </div>
+      <div class="col-c">
+        <select name="importance_{{ comp.code }}" class="sel-ctrl" required>
+          <option value="">—</option>
+          {% for val, label in importance_levels %}<option value="{{ val }}">{{ val }} — {{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-c top10-wrap">
+        <input type="checkbox" name="top10_{{ comp.code }}" id="cb_{{ comp.code }}" class="top10-cb" data-code="{{ comp.code }}">
+        <label for="cb_{{ comp.code }}" class="top10-lbl">Mark Top 10</label>
+      </div>
+      <div class="col-c">
+        <select name="day1_{{ comp.code }}" class="sel-ctrl">
+          <option value="">— Level —</option>
+          {% for level, name, desc in proficiency_levels %}<option value="{{ level }}">{{ level }} — {{ name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Section C -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">💬</div>
+      <div><div class="card-title">Section C — Open-Ended Questions</div>
+      <div class="card-subtitle">Optional but highly encouraged — shapes targeted learning pathways</div></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Q1. Which single competency is most critical for a new trainee in your function within the first 30 days? Why?</label>
+      <textarea name="q1" class="form-control" rows="3" placeholder="Your answer..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Q2. What is the biggest competency gap risk you foresee from campus-hired trainees in your function?</label>
+      <textarea name="q2" class="form-control" rows="3" placeholder="Your answer..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Q3. Suggest a theme or problem statement for the 2-month Action Learning Project for trainees in your function.</label>
+      <textarea name="q3" class="form-control" rows="3" placeholder="Your answer..."></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end;">
+    <a href="/" class="btn btn-outline">Cancel</a>
+    <button type="submit" class="btn btn-primary" style="padding:12px 28px;font-size:.92rem;">✅ Submit Survey</button>
+  </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let count = 0;
+const MAX = 10;
+
+function updateCounter() {
+  document.getElementById('top10-count').textContent = count;
+  document.getElementById('tc').textContent = count;
+  document.getElementById('top10-ok').style.display = count === MAX ? 'inline' : 'none';
+}
+
+document.querySelectorAll('.top10-cb').forEach(cb => {
+  cb.addEventListener('change', function() {
+    if (this.checked) {
+      if (count >= MAX) { this.checked = false; alert('Maximum 10 competencies allowed. Deselect one first.'); return; }
+      count++;
+      document.getElementById('row-' + this.dataset.code).classList.add('selected');
+    } else {
+      count--;
+      document.getElementById('row-' + this.dataset.code).classList.remove('selected');
+    }
+    updateCounter();
+  });
+});
+
+document.getElementById('date-field').value = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

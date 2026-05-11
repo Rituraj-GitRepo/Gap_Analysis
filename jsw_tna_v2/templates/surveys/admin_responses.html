@@ -1,0 +1,103 @@
+{% extends 'surveys/base.html' %}
+{% block title %}{{ title }} — Admin | JSW Motors{% endblock %}
+
+{% block extra_css %}
+<style>
+.filter-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.5rem;}
+.filter-bar select{padding:8px 12px;border:2px solid #e2e8f0;border-radius:8px;font-size:.82rem;outline:none;}
+.filter-bar select:focus{border-color:var(--jsw-blue);}
+</style>
+{% endblock %}
+
+{% block nav_extra %}
+<a href="/admin-dashboard/" class="nav-link">← Dashboard</a>
+<a href="/admin-gap-analysis/?function={{ function_filter }}" class="nav-link">📊 Gap Analysis</a>
+<a href="/admin-logout/" class="nav-link btn-nav">Sign Out</a>
+{% endblock %}
+
+{% block content %}
+<div class="main-content wide">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:800;color:var(--jsw-navy);">{{ title }}</h1>
+      <p style="font-size:.78rem;color:var(--text-light);">{{ responses|length }} records</p>
+    </div>
+    <a href="/admin-export/{{ survey_type }}/?function={{ function_filter }}&role={{ role_filter }}" class="btn btn-gold btn-sm">⬇ Export to Excel</a>
+  </div>
+
+  <form method="GET" class="filter-bar">
+    <div>
+      <label style="display:block;font-size:.73rem;font-weight:600;color:#475569;margin-bottom:3px;">Function</label>
+      <select name="function" onchange="this.form.submit()">
+        <option value="">All Functions</option>
+        {% for key, func in functions.items %}
+        <option value="{{ key }}" {% if function_filter == key %}selected{% endif %}>{{ func.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if survey_type == 'self-assessment' %}
+    <div>
+      <label style="display:block;font-size:.73rem;font-weight:600;color:#475569;margin-bottom:3px;">Role</label>
+      <select name="role" onchange="this.form.submit()">
+        <option value="">All Roles</option>
+        <option value="GET" {% if role_filter == 'GET' %}selected{% endif %}>GET</option>
+        <option value="MT"  {% if role_filter == 'MT'  %}selected{% endif %}>MT</option>
+      </select>
+    </div>
+    {% endif %}
+    <a href="/admin-responses/{{ survey_type }}/" class="btn btn-outline btn-sm" style="margin-bottom:0;">Reset</a>
+  </form>
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    {% if responses %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Emp Code</th><th>Role</th><th>Function</th>
+            {% if survey_type == 'functional-head' %}
+            <th>Top 10</th><th>Avg Importance</th>
+            {% else %}
+            <th>Avg Proficiency</th>
+            {% endif %}
+            <th>Date</th><th>Submitted</th><th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in responses %}
+          <tr>
+            <td style="color:var(--text-light);">{{ r.id }}</td>
+            <td><strong>{{ r.employee_name }}</strong></td>
+            <td style="font-family:monospace;font-size:.75rem;">{{ r.employee_code }}</td>
+            <td><span style="background:#F1F5F9;padding:2px 8px;border-radius:12px;font-size:.73rem;font-weight:700;">{{ r.get_role_display }}</span></td>
+            <td>{{ r.get_function_display }}</td>
+            {% if survey_type == 'functional-head' %}
+            <td><span style="background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:12px;font-weight:700;">{{ r.top10_count }}</span></td>
+            <td>{{ r.avg_importance }}</td>
+            {% else %}
+            <td><span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:12px;font-weight:700;">{{ r.avg_proficiency }}</span></td>
+            {% endif %}
+            <td style="white-space:nowrap;">{{ r.date }}</td>
+            <td style="color:var(--text-light);white-space:nowrap;font-size:.73rem;">{{ r.submitted_at|date:"d M Y, H:i" }}</td>
+            <td>
+              <form method="POST" action="/admin-delete/{{ survey_type }}/{{ r.id }}/"
+                    onsubmit="return confirm('Permanently delete response from {{ r.employee_name }}?');" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑 Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:3rem;text-align:center;color:var(--text-light);">
+      <div style="font-size:2rem;margin-bottom:1rem;">📭</div>
+      <p>No responses found for the selected filters.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

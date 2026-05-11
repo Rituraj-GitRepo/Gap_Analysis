@@ -1,0 +1,42 @@
+{% extends 'surveys/base.html' %}
+{% load static %}
+{% block title %}Survey Submitted — JSW Motors{% endblock %}
+{% block content %}
+<div class="main-content" style="max-width:620px;text-align:center;padding-top:4rem;">
+  <div class="card" style="padding:3rem 2rem;">
+    <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+    <h1 style="font-family:'Poppins',sans-serif;font-size:1.5rem;font-weight:800;color:var(--jsw-navy);margin-bottom:.5rem;">
+      Thank You{% if user_name %}, {{ user_name }}{% endif %}!
+    </h1>
+    <p style="font-size:.95rem;color:var(--text-mid);margin-bottom:.4rem;">
+      Your <strong>{{ meta.title }}</strong> has been submitted successfully.
+    </p>
+    {% if func_label %}
+    <p style="font-size:.82rem;color:var(--text-light);margin-bottom:2rem;">Function: <strong>{{ func_label }}</strong></p>
+    {% endif %}
+    <div style="background:var(--jsw-light);border-radius:10px;padding:1.25rem;margin-bottom:2rem;text-align:left;">
+      <div style="font-weight:700;font-size:.84rem;color:var(--jsw-navy);margin-bottom:8px;">What happens next?</div>
+      {% if survey_type == 'functional-head' %}
+      <ul style="list-style:none;font-size:.8rem;color:var(--text-mid);line-height:2.1;">
+        <li>› Your prioritised competencies will be collated by the HR team</li>
+        <li>› Top 10 priorities across all functional heads will be aggregated</li>
+        <li>› Results feed into the TNA and structured learning pathway design</li>
+        <li>› You will receive a summary report within 5 working days</li>
+      </ul>
+      {% else %}
+      <ul style="list-style:none;font-size:.8rem;color:var(--text-mid);line-height:2.1;">
+        <li>› Your responses will be reviewed by your HRBP</li>
+        <li>› A gap analysis will be generated against the FH desired levels</li>
+        <li>› Your Individual Development Plan (IDP) will be created from the outputs</li>
+        <li>› Your manager will validate scores at the 30-day check-in</li>
+      </ul>
+      {% endif %}
+    </div>
+    <a href="/" class="btn btn-primary" style="justify-content:center;">← Back to Home</a>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <img src="{% static 'images/jsw_logo.jpg' %}" style="height:34px;opacity:.65;">
+    <p style="font-size:.72rem;color:var(--text-light);margin-top:6px;">© 2026 JSW Motors — Confidential</p>
+  </div>
+</div>
+{% endblock %}

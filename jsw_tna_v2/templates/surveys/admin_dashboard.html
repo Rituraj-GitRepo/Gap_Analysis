@@ -1,0 +1,187 @@
+{% extends 'surveys/base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard — JSW Motors TNA{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+@media(max-width:800px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:#fff;border-radius:14px;padding:1.4rem;border:1px solid #E2E8F0;box-shadow:var(--shadow-sm);text-align:center;}
+.stat-num{font-family:'Poppins',sans-serif;font-size:2rem;font-weight:800;color:var(--jsw-navy);line-height:1;}
+.stat-label{font-size:.73rem;color:var(--text-light);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.func-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+@media(max-width:700px){.func-grid{grid-template-columns:1fr;}}
+.func-card{background:#fff;border-radius:12px;padding:1rem 1.25rem;border:1px solid #E2E8F0;
+  box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.func-name{font-weight:700;font-size:.84rem;color:var(--jsw-navy);}
+.fbadge{font-size:.68rem;padding:2px 8px;border-radius:12px;font-weight:600;}
+.fbadge-fh{background:#DBEAFE;color:#1D4ED8;}.fbadge-sa{background:#D1FAE5;color:#065F46;}
+.fbadge-tot{background:#FEF3C7;color:#92400E;}
+.btn-group{display:flex;gap:5px;flex-wrap:wrap;}
+.admin-nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;}
+</style>
+{% endblock %}
+
+{% block nav_extra %}
+<a href="/admin-gap-analysis/" class="nav-link">📊 Gap Analysis</a>
+<a href="/admin-logout/" class="nav-link btn-nav">Sign Out</a>
+{% endblock %}
+
+{% block content %}
+<div class="main-content wide">
+
+  <div class="admin-nav-bar">
+    <div>
+      <h1 style="font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:800;color:var(--jsw-navy);">📈 Admin Dashboard</h1>
+      <p style="font-size:.78rem;color:var(--text-light);">JSW Motors — Competency &amp; TNA Survey</p>
+    </div>
+    <div class="btn-group">
+      <a href="/admin-responses/functional-head/" class="btn btn-outline btn-sm">📋 FH Responses</a>
+      <a href="/admin-responses/self-assessment/" class="btn btn-outline btn-sm">👤 SA Responses</a>
+      <a href="/admin-gap-analysis/" class="btn btn-success btn-sm">📊 Gap Analysis</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1A2D5A,#2E4B8F);border:none;">
+      <div class="stat-num" style="color:#F0C93A;">{{ total }}</div>
+      <div class="stat-label" style="color:rgba(255,255,255,.7);">Total Submissions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#2563EB;">{{ fh_total }}</div>
+      <div class="stat-label">FH Surveys</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#16a34a;">{{ sa_total }}</div>
+      <div class="stat-label">Self-Assessments</div>
+      <div style="font-size:.7rem;color:var(--text-light);margin-top:4px;">GET: {{ get_sa }} · MT: {{ mt_sa }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#9333ea;">{{ functions|length }}</div>
+      <div class="stat-label">Functions Active</div>
+    </div>
+  </div>
+
+  <!-- Function breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🏢</div>
+      <div><div class="card-title">Responses by Function</div>
+      <div class="card-subtitle">FH = Functional Head Survey &nbsp;|&nbsp; SA = Self-Assessment &nbsp;|&nbsp; Click ⬇ to export or 📊 for gap analysis</div></div>
+    </div>
+    <div class="func-grid">
+      {% for fs in func_stats %}
+      <div class="func-card">
+        <div>
+          <div class="func-name">{{ fs.label }}</div>
+          <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
+            <span class="fbadge fbadge-fh">FH: {{ fs.fh_count }}</span>
+            <span class="fbadge fbadge-sa">SA: {{ fs.sa_count }}</span>
+            <span class="fbadge fbadge-tot">Total: {{ fs.total }}</span>
+          </div>
+        </div>
+        <div class="btn-group">
+          <a href="/admin-gap-analysis/?function={{ fs.key }}" class="btn btn-sm btn-success" title="Gap Analysis">📊</a>
+          <a href="/admin-export/functional-head/?function={{ fs.key }}" class="btn btn-sm btn-gold" title="Export FH">⬇ FH</a>
+          <a href="/admin-export/self-assessment/?function={{ fs.key }}" class="btn btn-sm btn-outline" title="Export SA">⬇ SA</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recent FH -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">📝</div>
+      <div><div class="card-title">Recent Functional Head Submissions</div></div>
+    </div>
+    {% if recent_fh %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Emp Code</th><th>Function</th><th>Top 10</th><th>Avg Importance</th><th>Submitted</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for r in recent_fh %}
+          <tr>
+            <td style="color:var(--text-light);">{{ r.id }}</td>
+            <td><strong>{{ r.employee_name }}</strong></td>
+            <td style="font-family:monospace;font-size:.75rem;">{{ r.employee_code }}</td>
+            <td>{{ r.get_function_display }}</td>
+            <td><span style="background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:12px;font-weight:700;">{{ r.top10_count }}</span></td>
+            <td>{{ r.avg_importance }}</td>
+            <td style="color:var(--text-light);font-size:.75rem;white-space:nowrap;">{{ r.submitted_at|date:"d M Y, H:i" }}</td>
+            <td>
+              <form method="POST" action="/admin-delete/functional-head/{{ r.id }}/" onsubmit="return confirm('Delete this response?');" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align:right;margin-top:10px;">
+      <a href="/admin-responses/functional-head/" class="btn btn-sm btn-outline">View All →</a>
+    </div>
+    {% else %}
+    <p style="color:var(--text-light);font-size:.85rem;">No functional head surveys submitted yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent SA -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">👤</div>
+      <div><div class="card-title">Recent Self-Assessment Submissions</div></div>
+    </div>
+    {% if recent_sa %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Emp Code</th><th>Role</th><th>Function</th><th>Avg Proficiency</th><th>Submitted</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for r in recent_sa %}
+          <tr>
+            <td style="color:var(--text-light);">{{ r.id }}</td>
+            <td><strong>{{ r.employee_name }}</strong></td>
+            <td style="font-family:monospace;font-size:.75rem;">{{ r.employee_code }}</td>
+            <td><span style="background:#F1F5F9;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700;">{{ r.role }}</span></td>
+            <td>{{ r.get_function_display }}</td>
+            <td><span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:12px;font-weight:700;">{{ r.avg_proficiency }}</span></td>
+            <td style="color:var(--text-light);font-size:.75rem;white-space:nowrap;">{{ r.submitted_at|date:"d M Y, H:i" }}</td>
+            <td>
+              <form method="POST" action="/admin-delete/self-assessment/{{ r.id }}/" onsubmit="return confirm('Delete this response?');" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align:right;margin-top:10px;">
+      <a href="/admin-responses/self-assessment/" class="btn btn-sm btn-outline">View All →</a>
+    </div>
+    {% else %}
+    <p style="color:var(--text-light);font-size:.85rem;">No self-assessments submitted yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Export all -->
+  <div class="card" style="background:linear-gradient(135deg,#1A2D5A,#2E4B8F);border:none;color:#fff;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px;">⬇ Export All Data to Excel</div>
+        <div style="font-size:.76rem;opacity:.75;">Download complete datasets with competency detail sheets per survey type</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/admin-export/functional-head/" class="btn btn-gold">📊 Export All FH Data</a>
+        <a href="/admin-export/self-assessment/" class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">📊 Export All SA Data</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
